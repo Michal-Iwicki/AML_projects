@@ -34,21 +34,25 @@ class logisitic_regression():
         g = y.shape[1]
         self.B = X.T@y/n
         if not lambdas: 
-            lambda_max= np.max(np.abs(self.B)/a)
+            lambda_max= np.max(np.abs(self.B))
+            if a != 0:
+                lambda_max /= a
             lambdas = np.logspace(np.log10(lambda_max), np.log10(epsilon*lambda_max), K)
 
         for lambd in lambdas:
             for k in range(g):
                 for j in range(p):
                     w_sum = 1
+                    w_sumx2 = 1
                     xj = X[:,j]
                     if weights:
                         preds = self.predict_proba(X)[:,k]
                         w = preds*(1-preds)
-                        w_sum = w@(xj*xj)
+                        w_sumx2 = w@(xj*xj)
+                        w_sum=np.sum(w)
                         xj = w*xj
-                    sum = (xj@(y[:,k])) - xj@X@(self.B[:,k]) + self.B[j,k]
-                    self.B[j,k]= soft_thresholding(sum/n,lambd*a)/(w_sum+lambd*(1-a))
+                    sum = (xj@(y[:,k])) - xj@X@(self.B[:,k]) + w_sum*self.B[j,k]
+                    self.B[j,k]= soft_thresholding(sum/n,lambd*a)/(w_sumx2+lambd*(1-a))
 
     def predict_proba(self, X):
         X = np.array(X)
