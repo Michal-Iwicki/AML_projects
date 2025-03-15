@@ -32,9 +32,9 @@ class logisitic_regression():
         X = self.standarize(X)
         y = one_hot_encode(y)
         g = y.shape[1]
-        self.B = X.T@y/n
+        self.B = np.zeros((p, g))
         if not lambdas: 
-            lambda_max= np.max(np.abs(self.B))
+            lambda_max= np.max(np.abs(X.T@y/n))
             if a != 0:
                 lambda_max /= a
             lambdas = np.logspace(np.log10(lambda_max), np.log10(epsilon*lambda_max), K)
