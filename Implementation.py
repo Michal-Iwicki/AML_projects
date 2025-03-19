@@ -45,15 +45,17 @@ class logisitic_regression():
                     w_sum = 1
                     w_sumx2 = 1
                     xj = X[:,j]
+                    preds = self.predict_proba(X)[:,k]
+                    w =  preds*(1-preds)
                     if weights:
-                        preds = self.predict_proba(X)[:,k]
-                        w = preds*(1-preds)
                         w_sumx2 = w@(xj*xj)
-                        w_sum=np.sum(w)
                         xj = w*xj
+
+                    # old version just in case    
                     #sum = (xj@(y[:,k])) - xj@X@(self.B[:,k]) + w_sum*self.B[j,k]
-                    # new version
-                    sum = xj@(y[:,k]-self.predict_proba(X)[:,k])
+                    #sum = xj@(y[:,k]-self.predict_proba(X)[:,k])
+                    #Implemented with using z as y
+                    sum = -xj@(xj*w*self.B[j,k]- y[:,k] +preds)
                     self.B[j,k]= soft_thresholding(sum/n,lambd*a)/(w_sumx2+lambd*(1-a))
 
     def predict_proba(self, X):
