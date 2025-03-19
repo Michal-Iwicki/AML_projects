@@ -51,7 +51,9 @@ class logisitic_regression():
                         w_sumx2 = w@(xj*xj)
                         w_sum=np.sum(w)
                         xj = w*xj
-                    sum = (xj@(y[:,k])) - xj@X@(self.B[:,k]) + w_sum*self.B[j,k]
+                    #sum = (xj@(y[:,k])) - xj@X@(self.B[:,k]) + w_sum*self.B[j,k]
+                    # new version
+                    sum = xj@(y[:,k]-self.predict_proba(X)[:,k])
                     self.B[j,k]= soft_thresholding(sum/n,lambd*a)/(w_sumx2+lambd*(1-a))
 
     def predict_proba(self, X):
