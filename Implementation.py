@@ -18,7 +18,7 @@ class logisitic_regression():
     def standarize(self, X):
         return (X-self.mean)/self.std
     
-    def fit(self, X, y, K=100, a = 1,weights = True, lambdas = None):
+    def fit(self, X, y, K=100, a = 1,weights = True, user_lambda = None):
         X= np.array(X)
         n, p = X.shape
         y = np.array(y)
@@ -30,8 +30,10 @@ class logisitic_regression():
         z = q
         if weights:
             z = 0.25
-        if not lambdas: 
-            lambda_max= np.max(np.abs((y- 0.5)@X*z)) #since B = 0 w is 0.5 everywhere so this is the biggest possible value
+        if user_lambda :
+            lambdas = np.repeat(user_lambda,K)
+        else: 
+            lambda_max= np.max(np.abs((y- 0.5)@X*z)) #since B = 0 p is 0.5 and w is 0.25 everywhere
             if a != 0:
                 lambda_max /= a
             lambdas = np.logspace(np.log10(lambda_max), np.log10(0.001*lambda_max), K)
