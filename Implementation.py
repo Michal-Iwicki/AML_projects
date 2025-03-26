@@ -3,15 +3,8 @@ import numpy as np
 def soft_thresholding(a, b):
     return np.sign(a) * np.maximum(np.abs(a) - b, 0)
 
-def one_hot_encode(y, num_classes=None):
-    y = np.array(y)
-    if num_classes is None:
-        num_classes = np.max(y) + 1
-    
-    one_hot = np.zeros((len(y), num_classes))
-    one_hot[np.arange(len(y)), y] = 1
-    return one_hot
-
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
 
 class logisitic_regression():
     def __init__(self):
@@ -25,18 +18,25 @@ class logisitic_regression():
     def standarize(self, X):
         return (X-self.mean)/self.std
 
-    def fit(self, X, y, a, epsilon = 0.001, K=100, weights = False, lambdas = None, max_count = 1000):
+    def fit(self, X, y, a, epsilon = 0.001, K=100, weights = False, lambdas = None):
         X, y = np.array(X), np.array(y)
         n, p = X.shape
+        y = np.array(y)
         self.set_std_mean(X)
         X = self.standarize(X)
-        y = one_hot_encode(y)
-        g = y.shape[1]
-        self.B = np.zeros((p, g), dtype=float)
-        if not lambdas: 
-            lambda_max= np.max(np.abs(X.T@y/n))
+        self.B= np.zeros(p)
+        q=1/n
+        wx2 = 1
+        z = q
+        if weights:
+            z = 0.25
+        if user_lambda :
+            lambdas = np.repeat(user_lambda,K)
+        else: 
+            lambda_max= np.max(np.abs((y- 0.5)@X*z)) #since B = 0 p is 0.5 and w is 0.25 everywhere
             if a != 0:
                 lambda_max /= a
+            lambdas = np.logspace(np.log10(lambda_max), np.log10(0.001*lambda_max), K)
             lambdas = np.logspace(np.log10(lambda_max), np.log10(epsilon*lambda_max), K)
         count = 0
         print(len(lambdas) * g * p)
@@ -71,8 +71,19 @@ class logisitic_regression():
         X = np.exp(X@self.B)
         return X / X.sum(axis=1, keepdims=True)
     
+            for j in range(p):
+                preds = sigmoid(X@self.B) 
+                w = preds*(1-preds)
+                xj = (X[:,j]).reshape((n,1))
+                if weights:
+                    #p and wx2 has different forms depends on version that we choose
+                    q=w
+                    wx2 = (w @ (xj**2))[0]
+                sum = (q*w*X[:,j]*self.B[j] +q*(y-preds))@xj
+                self.B[j] = soft_thresholding(sum[0],lambd*a)/(wx2 +lambd*(1-a))
+        
     def predict(self, X):
-        predictions = self.predict_proba(X)
-        return np.argmax(predictions, axis = 1)
+        X = self.standarize(X)
+        return np.round(1/(1+np.exp(-X@self.B)))           
 
         
