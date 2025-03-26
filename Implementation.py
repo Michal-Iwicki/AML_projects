@@ -18,7 +18,7 @@ class logisitic_regression():
     def standarize(self, X):
         return (X-self.mean)/self.std
 
-    def fit(self, X, y, a, epsilon = 0.001, K=100, weights = False, lambdas = None):
+    def fit(self, X, y, a, epsilon = 0.001, K=100, weights = False, user_lambda = None, max_count=100):
         X, y = np.array(X), np.array(y)
         n, p = X.shape
         y = np.array(y)
@@ -70,17 +70,6 @@ class logisitic_regression():
         X = self.standarize(X)
         X = np.exp(X@self.B)
         return X / X.sum(axis=1, keepdims=True)
-    
-            for j in range(p):
-                preds = sigmoid(X@self.B) 
-                w = preds*(1-preds)
-                xj = (X[:,j]).reshape((n,1))
-                if weights:
-                    #p and wx2 has different forms depends on version that we choose
-                    q=w
-                    wx2 = (w @ (xj**2))[0]
-                sum = (q*w*X[:,j]*self.B[j] +q*(y-preds))@xj
-                self.B[j] = soft_thresholding(sum[0],lambd*a)/(wx2 +lambd*(1-a))
         
     def predict(self, X):
         X = self.standarize(X)
