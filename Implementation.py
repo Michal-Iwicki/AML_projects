@@ -25,23 +25,26 @@ class logisitic_regression():
     def standarize(self, X):
         return (X-self.mean)/self.std
 
-    def fit(self, X, y, a, epsilon = 0.001, K=100, weights = False, lambdas = None):
+    def fit(self, X, y, a, epsilon = 0.001, K=100, weights = False, lambdas = None, max_count = 1000):
         X, y = np.array(X), np.array(y)
         n, p = X.shape
         self.set_std_mean(X)
         X = self.standarize(X)
         y = one_hot_encode(y)
         g = y.shape[1]
-        self.B = np.zeros((p, g))
+        self.B = np.zeros((p, g), dtype=float)
         if not lambdas: 
             lambda_max= np.max(np.abs(X.T@y/n))
             if a != 0:
                 lambda_max /= a
             lambdas = np.logspace(np.log10(lambda_max), np.log10(epsilon*lambda_max), K)
-
+        count = 0
+        print(len(lambdas) * g * p)
         for lambd in lambdas:
             for k in range(g):
                 for j in range(p):
+                    if count % 1000 == 0:
+                        print(f'Count {count}')                    
                     w_sum = 1
                     w_sumx2 = 1
                     xj = X[:,j]
@@ -57,6 +60,10 @@ class logisitic_regression():
                     #Implemented with using z as y
                     sum = -xj@(xj*w*self.B[j,k]- y[:,k] +preds)
                     self.B[j,k]= soft_thresholding(sum/n,lambd*a)/(w_sumx2+lambd*(1-a))
+                    
+                    count += 1
+                    if count > max_count:
+                        break
 
     def predict_proba(self, X):
         X = np.array(X)
@@ -67,4 +74,5 @@ class logisitic_regression():
     def predict(self, X):
         predictions = self.predict_proba(X)
         return np.argmax(predictions, axis = 1)
+
         
