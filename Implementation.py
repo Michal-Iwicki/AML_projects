@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+import measures
 
 def soft_thresholding(a, b):
     return np.sign(a) * np.maximum(np.abs(a) - b, 0)
@@ -20,7 +22,7 @@ class logisitic_regression():
     def standarize(self, X):
         return (X-self.mean)/self.std
     
-    def fit(self, X, y, max_iter=100, a=1, weights=True, lambdas=None, fit_intercept=True, X_valid=None, y_valid=None, measure=None):
+    def fit(self, X, y, max_iter=100, a = 1,weights = True, user_lambda = None, fit_intercept = True, X_valid=None, y_valid=None, measure=None):
         X= np.array(X)
         n, p = X.shape
         y = np.array(y)
@@ -37,12 +39,14 @@ class logisitic_regression():
         self.B0 = np.log(prior/(1-prior))
         if weights:
             z = prior*(1-prior)
-        if not lambdas: 
+        if not user_lambda: 
             lambda_max= np.max(np.abs((y- prior)@X*z)) #since B = 0 w is 0.5 everywhere so this is the biggest possible value
             if a != 0:
                 lambda_max /= a
             lambdas = np.logspace(np.log10(lambda_max), np.log10(0.001*lambda_max), max_iter)
-        
+        else:
+            lambdas = np.repeat(user_lambda, max_iter)
+
         self.lambdas_list = []
         self.coeff_list = []
         self.inter_list = []
@@ -88,8 +92,50 @@ class logisitic_regression():
     
     def predict(self, X):
         X = self.standarize(X)
-        return np.round(sigmoid(X@self.B + self.B0))   
-    
+        return np.round(sigmoid(X@self.B + self.B0))
+
+    # def validate(self, X_valid, y_valid, measure):
+    #     return measure(self.fit(X_valid), y_valid)
+    #
+    # def plot(self, measure, X, y, lambdas=None, max_iter=200):
+    #     metrics = {
+    #         "precision": measure.precision,
+    #         "recall": measure.recall,
+    #         "f_measure": measure.f_measure,
+    #         "balanced_accuracy": measure.balanced_accuracy,
+    #         "auc_roc": measure.auc_roc,
+    #         "auc_pr": measure.auc_pr
+    #     }
+    #     metric = metrics.get(measure)
+    #     X, X_val, y, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+    #     # just for testing if works can delete it
+    #     if not lambdas:
+    #         n = X.shape[0]
+    #         z = 1 / n
+    #         prior = y.mean()
+    #         lambda_max = np.max(np.abs((y - prior) @ X * z))
+    #         lambdas = np.linspace(lambda_max - 0.001, 0.001 * lambda_max, num=100)
+    #     results = []
+    #     for lambd in lambdas:
+    #         self.fit(X, y, max_iter=max_iter, user_lambda=lambd)
+    #         results.append(self.validate(X_val, y_val, metric))
+    #
+    #     # Plot to be done
+    #
+    # def plot_coefficients(self, X, y, lambdas=None, max_iter=200):
+    #     if not lambdas:
+    #         n = X.shape[0]
+    #         z = 1 / n
+    #         prior = y.mean()
+    #         lambda_max = np.max(np.abs((y - prior) @ X * z))
+    #         lambdas = np.linspace(lambda_max - 0.001, 0.001 * lambda_max, num=100)
+    #     results = []
+    #     for lambd in lambdas:
+    #         self.fit(X, y, max_iter=max_iter, user_lambda=lambd)
+    #         results.append(self.B)
+    #
+    #     # Plot to be done
+
     def evaluate(self, y_true, y_scores, measure):
         y_true = np.array(y_true)
         y_scores = np.array(y_scores)
@@ -113,9 +159,9 @@ class logisitic_regression():
         elif measure == 'balanced accuracy':
             recall = true_pos / (true_pos + false_neg) if (true_pos + false_neg) > 0 else 0
             spec = true_neg / (true_neg + false_pos) if (true_neg + false_pos) > 0 else 0
-            return (recall + spec) / 2  
+            return (recall + spec) / 2
         return 0
-    
+
     def ROC_AUC(self, y_true, y_scores):
         y_true = np.array(y_true)
         y_scores = np.array(y_scores)
@@ -132,7 +178,7 @@ class logisitic_regression():
         true_pos_rate = true_pos_rate[idx]
 
         return np.trapz(true_pos_rate, false_pos_rate)
-    
+
     def PR_AUC(self, y_true, y_scores):
         y_true = np.array(y_true)
         y_scores = np.array(y_scores)
@@ -149,8 +195,8 @@ class logisitic_regression():
         recall = recall[idx]
         precision = precision[idx]
 
-        return np.trapz(precision, recall) 
-    
+        return np.trapz(precision, recall)
+
     def plot(self, X_valid, y_valid, measure, filename=None):
         scores = self.validate(X_valid, y_valid, measure)
         plt.figure()
@@ -162,7 +208,7 @@ class logisitic_regression():
         if filename is not None:
             plt.savefig(filename)
         plt.show()
-        
+
     def plot_coefficients(self, filename=None):
         plt.figure()
         coefs = np.array(self.coeff_list)
