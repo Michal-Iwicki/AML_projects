@@ -17,9 +17,9 @@ class logisitic_regression():
 
     def standarize(self, X):
         return (X-self.mean)/self.std
-
-    def fit(self, X, y, a, epsilon = 0.001, K=100, weights = False, user_lambda = None, max_count=100):
-        X, y = np.array(X), np.array(y)
+    
+    def fit(self, X, y, max_iter=100, a = 1,weights = True, lambdas = None, fit_intercept = True):
+        X= np.array(X)
         n, p = X.shape
         y = np.array(y)
         self.set_std_mean(X)
@@ -28,51 +28,34 @@ class logisitic_regression():
         q=1/n
         wx2 = 1
         z = q
+        if fit_intercept:
+            prior = y.mean()
+        else:
+            prior= 0.5
+        self.B0 = np.log(prior/(1-prior))
         if weights:
-            z = 0.25
-        if user_lambda :
-            lambdas = np.repeat(user_lambda,K)
-        else: 
-            lambda_max= np.max(np.abs((y- 0.5)@X*z)) #since B = 0 p is 0.5 and w is 0.25 everywhere
+            z = prior*(1-prior)
+        if not lambdas: 
+            lambda_max= np.max(np.abs((y- prior)@X*z)) #since B = 0 w is 0.5 everywhere so this is the biggest possible value
             if a != 0:
                 lambda_max /= a
-            lambdas = np.logspace(np.log10(lambda_max), np.log10(0.001*lambda_max), K)
-            lambdas = np.logspace(np.log10(lambda_max), np.log10(epsilon*lambda_max), K)
-        count = 0
-        print(len(lambdas) * g * p)
+            lambdas = np.logspace(np.log10(lambda_max), np.log10(0.001*lambda_max), max_iter)
         for lambd in lambdas:
-            for k in range(g):
-                for j in range(p):
-                    if count % 1000 == 0:
-                        print(f'Count {count}')                    
-                    w_sum = 1
-                    w_sumx2 = 1
-                    xj = X[:,j]
-                    preds = self.predict_proba(X)[:,k]
-                    w =  preds*(1-preds)
-                    if weights:
-                        w_sumx2 = w@(xj*xj)
-                        xj = w*xj
-
-                    # old version just in case    
-                    #sum = (xj@(y[:,k])) - xj@X@(self.B[:,k]) + w_sum*self.B[j,k]
-                    #sum = xj@(y[:,k]-self.predict_proba(X)[:,k])
-                    #Implemented with using z as y
-                    sum = -xj@(xj*w*self.B[j,k]- y[:,k] +preds)
-                    self.B[j,k]= soft_thresholding(sum/n,lambd*a)/(w_sumx2+lambd*(1-a))
-                    
-                    count += 1
-                    if count > max_count:
-                        break
-
-    def predict_proba(self, X):
-        X = np.array(X)
-        X = self.standarize(X)
-        X = np.exp(X@self.B)
-        return X / X.sum(axis=1, keepdims=True)
+            for j in range(p):
+                preds = sigmoid(X@self.B+ self.B0) 
+                w = preds*(1-preds)
+                xj = (X[:,j]).reshape((n,1))
+                if weights:
+                    #p and wx2 has different forms depends on version that we choose
+                    q=w
+                    wx2 = (w @ (xj**2))[0]
+                sum = (q*w*X[:,j]*self.B[j] +q*(y-preds))@xj
+                self.B[j] = soft_thresholding(sum[0],lambd*a)/(wx2 +lambd*(1-a))
         
+    def predict_proba(self,X):
+        X = self.standarize(X)
+        return sigmoid(X@self.B+ self.B0) 
+    
     def predict(self, X):
         X = self.standarize(X)
-        return np.round(1/(1+np.exp(-X@self.B)))           
-
-        
+        return np.round(sigmoid(X@self.B + self.B0))        
