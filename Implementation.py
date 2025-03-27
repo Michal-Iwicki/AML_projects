@@ -2,8 +2,6 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import measures
 
-
-
 def soft_thresholding(a, b):
     return np.sign(a) * np.maximum(np.abs(a) - b, 0)
 
@@ -72,12 +70,12 @@ class logisitic_regression():
 
     def plot(self, measure, X, y, lambdas = None, max_iter = 200):
         metrics = {
-            "precision": measure.precision,
-            "recall":  measure.recall,
-            "f_measure":  measure.f_measure,
-            "balanced_accuracy":  measure.balanced_accuracy,
-            "auc_roc":  measure.auc_roc,
-            "auc_pr":  measure.auc_pr
+            "precision": measures.precision,
+            "recall":  measures.recall,
+            "f_measure":  measures.f_measure,
+            "balanced_accuracy":  measures.balanced_accuracy,
+            "auc_roc":  measures.auc_roc,
+            "auc_pr":  measures.auc_pr
         }
         metric = metrics.get(measure)
         X, X_val, y, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
