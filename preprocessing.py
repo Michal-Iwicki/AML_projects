@@ -60,9 +60,9 @@ def check_feature_sample_ratio(df):
 def split(df):
     X = df.drop(columns=['target'])
     y = df['target']
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-    return X, y.astype(int), X_train, X_test, y_train.astype(int), y_test.astype(int)
+    X_train_val, X_test, y_train_val, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    X_train, X_valid, y_train, y_valid = train_test_split(X_train_val, y_train_val, test_size=0.5, random_state=42)
+    return X, y.astype(int), X_train, X_valid, X_test, y_train.astype(int), y_valid.astype(int), y_test.astype(int)
 
 def one_hot_encode_categorical(df):
     feature_cols = df.columns.drop("target")
