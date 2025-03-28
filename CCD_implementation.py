@@ -39,7 +39,7 @@ class logisitic_regression():
         self.B0 = np.log(prior/(1-prior))
         if weights:
             z = prior*(1-prior)
-        if not user_lambda: 
+        if user_lambda == None: 
             lambda_max= np.max(np.abs((y- prior)@X*z)) #since B = 0 
             if a != 0:
                 lambda_max /= a
@@ -129,10 +129,10 @@ class logisitic_regression():
 
         return np.trapz(precision, recall)
     
-    def plot(self, measure, X, y, lambdas=None, max_iter=200, lambda_num = 100, eps = 0.001,filename=None, weights = False):
+    def plot(self, measure, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = True):
         X, X_val, y, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-        # just for testing if works can delete it
-        if not lambdas:
+        # Automated finding the smalest lambda with which every coefficient is 0
+        if lambda_max == None:
             n = X.shape[0]
             z = 1 / n
             prior = y.mean()
@@ -141,7 +141,7 @@ class logisitic_regression():
             self.set_std_mean(X)
             X_c = self.standarize(X)
             lambda_max = np.max(np.abs((y - prior) @ X_c * z))
-            lambdas = np.linspace(lambda_max, eps * lambda_max, num=lambda_num)
+        lambdas = np.linspace(lambda_max, lambda_scale * lambda_max, num=lambda_num)
         results = []
         for lambd in lambdas:
             self.fit(X, y, max_iter=max_iter, user_lambda=lambd, weights= weights)
@@ -156,8 +156,9 @@ class logisitic_regression():
             plt.savefig(filename)
         plt.show()
     
-    def plot_coefficients(self, X, y, lambdas=None, max_iter=200, lambda_num = 100, eps = 0.001,filename=None, weights = False):
-        if lambdas== None:
+    def plot_coefficients(self, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = True):
+        # Automated finding the smallest lambda with which every coefficient is 0
+        if lambda_max== None:
             n = X.shape[0]
             z = 1 / n
             prior = y.mean()
@@ -166,7 +167,7 @@ class logisitic_regression():
             if weights:
                 z = prior*(1-prior)
             lambda_max = np.max(np.abs((y - prior) @ X_c * z))
-            lambdas = np.linspace(lambda_max, eps * lambda_max, num=lambda_num)
+        lambdas = np.linspace(lambda_max, lambda_scale * lambda_max, num=lambda_num)
         results = []
         for lambd in lambdas:
             self.fit(X, y, max_iter=max_iter, user_lambda=lambd, weights= weights)
@@ -174,7 +175,6 @@ class logisitic_regression():
     
         coefs = np.array(results).T  # Transpose to have features as rows
 
-       
         for coef, feature in zip(coefs, range(X.shape[1])):
             plt.plot(lambdas, coef, label=f'Feature {feature}')
  
