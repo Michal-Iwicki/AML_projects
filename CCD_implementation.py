@@ -129,7 +129,7 @@ class logisitic_regression():
 
         return np.trapz(precision, recall)
     
-    def plot(self, measure, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = True):
+    def plot(self, measure, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = False):
         X, X_val, y, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
         # Automated finding the smalest lambda with which every coefficient is 0
         if lambda_max == None:
@@ -156,7 +156,7 @@ class logisitic_regression():
             plt.savefig(filename)
         plt.show()
     
-    def plot_coefficients(self, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = True):
+    def plot_coefficients(self, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = False):
         # Automated finding the smallest lambda with which every coefficient is 0
         if lambda_max== None:
             n = X.shape[0]
