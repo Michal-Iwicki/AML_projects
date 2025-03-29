@@ -22,7 +22,7 @@ class logisitic_regression():
     def standarize(self, X):
         return (X-self.mean)/self.std
     
-    def fit(self, X, y, max_iter=100, a = 1,weights = True, user_lambda = None, fit_intercept = True):
+    def fit(self, X, y, max_iter=100, a = 1,weights = True, user_lambda = None, fit_intercept = True, plots = False):
         X= np.array(X)
         n, p = X.shape
         y = np.array(y)
@@ -32,6 +32,9 @@ class logisitic_regression():
         q=1/n
         wx2 = 1
         z = q
+        log_likes=[]
+        coefs = np.zeros((max_iter,p))
+        i=0
         if fit_intercept:
             prior = y.mean()
         else:
@@ -58,6 +61,33 @@ class logisitic_regression():
                     wx2 = (w @ (xj**2))[0]
                 sum = (q*w*X[:,j]*self.B[j] +q*(y-preds))@xj
                 self.B[j] = soft_thresholding(sum[0],lambd*a)/(wx2 +lambd*(1-a) + 1e-8)
+            if plots:
+                preds = sigmoid(X@self.B+ self.B0)
+                log_like = -(y*np.log(preds)+(1-y)*np.log(1-preds)).sum()
+                log_likes.append(log_like)
+                coefs[i:,]=self.B
+                i+=1
+        if plots:
+            iters = np.arange(0,max_iter)
+            plt.figure()
+            plt.plot(iters, log_likes)
+            plt.xlabel('Iteration')
+            plt.ylabel("Loss")
+            plt.title("Change of loss function through iterations")
+            plt.show()
+
+            
+            coefs = coefs.T  # Transpose to have features as rows
+            
+            for coef, feature in zip(coefs, range(X.shape[1])):
+                plt.plot(iters, coef, label=f'Feature {feature}')
+
+            plt.xlabel('Iteration')
+            plt.ylabel('Coefficients')
+            plt.title('Change of coefficients through iterations')
+            plt.legend()
+            plt.show()
+
 
         
     def predict_proba(self,X):
