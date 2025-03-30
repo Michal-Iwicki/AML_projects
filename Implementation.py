@@ -199,6 +199,8 @@ class logisitic_regression():
 
     def plot(self, X_valid, y_valid, measure, filename=None):
         scores = self.validate(X_valid, y_valid, measure)
+        best_index = np.argmax(scores)
+        best_lambda = self.lambdas_list[best_index]
         plt.figure()
         plt.plot(self.lambdas_list, scores)
         plt.xscale('log')
@@ -208,6 +210,7 @@ class logisitic_regression():
         if filename is not None:
             plt.savefig(filename)
         plt.show()
+        return best_lambda
 
     def plot_coefficients(self, filename=None):
         plt.figure()
