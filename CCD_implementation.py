@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 import sklearn.metrics as metrics
 
 def soft_thresholding(a, b):
+    """Soft thresholding used in fitting of model"""
     return np.sign(a) * np.maximum(np.abs(a) - b, 0)
 
 def sigmoid(x):
@@ -11,18 +12,33 @@ def sigmoid(x):
     return 1/(1+np.exp(-x))
 
 class logisitic_regression():
+    """Class implemented logistic regression model with CCD optimization"""
     def __init__(self):
         pass
     
     def set_std_mean(self,X, epsilon = 1e-8):
+        """Part of fitting where mean and std of variables are estimated"""
         self.mean = np.mean(X, axis = 0)
         std = np.std(X,axis = 0)
         self.std = np.where(std > 0, std, epsilon)
 
     def standarize(self, X):
+        """Standarization of data. Used in fitting and predicting"""
         return (X-self.mean)/self.std
     
     def fit(self, X, y, max_iter=100, a = 1,weights = True, user_lambda = None, fit_intercept = True, plots = False):
+        """
+        Fitting model with input data using CCD algorithm.
+
+        :param X: training data, which is later standardized
+        :param y: target variable of the training data
+        :param max_iter: number of updates for each coefficient
+        :param a: elastic_net parameter (a * lasso + (1 - a) * ridge)
+        :param weights: if True, uses a version with weighted observations; otherwise, weight = 1/n
+        :param user_lambda: if None, performs warm-up training as described in the article, starting with the smallest lambda for which all coefficients are zero, and then decreasing to a value 1000 times smaller. Otherwise, uses the given lambda value for max_iter iterations.
+        :param fit_intercept: if False, B0 = 0; if True, B0 satisfies the equation sigmoid(B0) = prior. Recommended for unbalanced data.
+        :param plots: if True, displays plots related to the change in the loss function and coefficients over iterations.
+        """
         X= np.array(X)
         n, p = X.shape
         y = np.array(y)
@@ -91,14 +107,22 @@ class logisitic_regression():
 
         
     def predict_proba(self,X):
+        """Return vector of propabilities of class 1 for each observation"""
         X = self.standarize(X)
         return sigmoid(X@self.B+ self.B0) 
     
     def predict(self, X):
+        """Return vector of predictions using threshold 0.5 for propability"""
         X = self.standarize(X)
         return np.round(sigmoid(X@self.B + self.B0))
 
     def validate(self, X_valid, y_valid, measure):
+        """
+        Compute measures for validation data set
+
+        Possible metrics:
+        recall, precision, roc(ROC AUC), prc(precision recall curve), balanced accuracy
+        """
         y_true = np.array(y_valid)
         y_scores = self.predict_proba(X_valid)
         y_pred = (y_scores >= 0.5).astype(int)
@@ -125,6 +149,7 @@ class logisitic_regression():
         return 0
 
     def ROC_AUC(self, y_true, y_scores):
+        """Compute Area Under the Receiver Operating Characteristic Curve (ROC AUC) from prediction scores"""
         y_true = np.array(y_true)
         y_scores = np.array(y_scores)
         thresholds = np.sort(np.unique(y_scores))[::-1]
@@ -142,6 +167,7 @@ class logisitic_regression():
         return np.trapz(true_pos_rate, false_pos_rate)
 
     def PR_AUC(self, y_true, y_scores):
+        """Compute precision-recall pairs for different probability thresholds"""
         y_true = np.array(y_true)
         y_scores = np.array(y_scores)
         thresholds = np.sort(np.unique(y_scores))[::-1]
@@ -160,6 +186,25 @@ class logisitic_regression():
         return np.trapz(precision, recall)
     
     def plot(self, measure, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = False):
+        """
+        Generate a plot visualizing the change in a given metric measured on the validation set, 
+        predicted by a model fitted on the training set with different lambda values.
+
+        :param measure: one of the metrics described in the validate method
+        :param X, y: input data, which is automatically split into train/validation datasets 
+                    used later for fitting and validating the model
+        :param lambda_max: the maximum lambda value to be tested. If None, automatically determines 
+                        the smallest lambda for which all coefficients equal 0.
+        :param max_iter: number of iterations for the fit method
+        :param lambda_num: number of lambda values to be tested 
+        :param lambda_scale: the minimum lambda is determined as lambda_scale * lambda_max. 
+                            The remaining lambda values are chosen sequentially from the range 
+                            (lambda_max, lambda_scale * lambda_max).
+        :param filename: name under which the plot will be saved in the current folder
+        :param weights: determines whether the model will be fitted during testing with weighted 
+                        observations or as 1/n.
+        """
+
         X, X_val, y, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
         # Automated finding the smalest lambda with which every coefficient is 0
         if lambda_max == None:
@@ -187,6 +232,22 @@ class logisitic_regression():
         plt.show()
     
     def plot_coefficients(self, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = False):
+        """
+        Generate a plot visualizing the change in coefficients for different lambda values.
+
+        :param X, y: input data used for fitting the model
+        :param lambda_max: the maximum lambda value to be tested. If None, automatically determines 
+                        the smallest lambda for which all coefficients equal 0.
+        :param max_iter: number of iterations for the fit method
+        :param lambda_num: number of lambda values to be tested 
+        :param lambda_scale: the minimum lambda is determined as lambda_scale * lambda_max. 
+                            The remaining lambda values are chosen sequentially from the range 
+                            (lambda_max, lambda_scale * lambda_max).
+        :param filename: name under which the plot will be saved in the current folder
+        :param weights: determines whether the model will be fitted during testing with weighted 
+                        observations or as 1/n.
+        """
+
         # Automated finding the smallest lambda with which every coefficient is 0
         if lambda_max== None:
             n = X.shape[0]
