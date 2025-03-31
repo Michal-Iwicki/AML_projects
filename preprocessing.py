@@ -85,16 +85,16 @@ def check_feature_sample_ratio(df):
     
 def split(df):
     """
-    splits the dataframe into train, validation and test sets with a 35/35/30 ratio
+    splits the dataframe into train and test sets with a 70/30 ratio
 
     :param df: dataframe with column named "target"
-    :returns: X, y, X_train, X_valid, X_test, y_train, y_valid, y_test 
+    :returns: X, y, X_train,  X_test, y_train,  y_test 
     """
     X = df.drop(columns=['target'])
     y = df['target']
-    X_train_val, X_test, y_train_val, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-    X_train, X_valid, y_train, y_valid = train_test_split(X_train_val, y_train_val, test_size=0.5, random_state=42)
-    return X, y.astype(int), X_train, X_valid, X_test, y_train.astype(int), y_valid.astype(int), y_test.astype(int)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    #X_train, X_valid, y_train, y_valid = train_test_split(X_train_val, y_train_val, test_size=0.5, random_state=42)
+    return X, y.astype(int), X_train, X_test, y_train.astype(int), y_test.astype(int)
             
 def drop_categorical(df):
     """
