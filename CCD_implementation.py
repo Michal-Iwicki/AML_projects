@@ -11,7 +11,7 @@ def sigmoid(x):
     x = np.clip(x, -500, 500)
     return 1/(1+np.exp(-x))
 
-class logisitic_regression():
+class LogRegCCD():
     """Class implemented logistic regression model with CCD optimization"""
     def __init__(self):
         pass
