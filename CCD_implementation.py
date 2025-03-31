@@ -185,7 +185,7 @@ class logisitic_regression():
 
         return np.trapz(precision, recall)
     
-    def plot(self, measure, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = False):
+    def plot(self, measure, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = False, print_plot = True):
         """
         Generate a plot visualizing the change in a given metric measured on the validation set, 
         predicted by a model fitted on the training set with different lambda values.
@@ -203,6 +203,7 @@ class logisitic_regression():
         :param filename: name under which the plot will be saved in the current folder
         :param weights: determines whether the model will be fitted during testing with weighted 
                         observations or as 1/n.
+        :param print_plot: if True plot is printed
         """
 
         X, X_val, y, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -221,17 +222,18 @@ class logisitic_regression():
         for lambd in lambdas:
             self.fit(X, y, max_iter=max_iter, user_lambda=lambd, weights= weights)
             results.append(self.validate(X_val, y_val, measure))
-    
-        plt.figure()
-        plt.plot(lambdas, results)
-        plt.xlabel('lambda')
-        plt.ylabel(measure)
-        plt.title(f"Change of {measure} through lambdas with CCD Logistic Regression")
-        if filename is not None:
-            plt.savefig(filename)
-        plt.show()
+
+        if print_plot:
+            plt.figure()
+            plt.plot(lambdas, results)
+            plt.xlabel('lambda')
+            plt.ylabel(measure)
+            plt.title(f"Change of {measure} through lambdas with CCD Logistic Regression")
+            if filename is not None:
+                plt.savefig(filename)
+            plt.show()
         best_index = np.argmax(results)
-        best_lambda = self.lambdas_list[best_index]
+        best_lambda = lambdas[best_index]
         return best_lambda
     
     def plot_coefficients(self, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = False):
