@@ -230,6 +230,9 @@ class logisitic_regression():
         if filename is not None:
             plt.savefig(filename)
         plt.show()
+        best_index = np.argmax(results)
+        best_lambda = self.lambdas_list[best_index]
+        return best_lambda
     
     def plot_coefficients(self, X, y, lambda_max=None, max_iter=200, lambda_num = 100, lambda_scale = 0.001,filename=None, weights = False):
         """
@@ -276,3 +279,4 @@ class logisitic_regression():
         if filename is not None:
             plt.savefig(filename)
         plt.show()
+    
