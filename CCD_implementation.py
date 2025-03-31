@@ -79,7 +79,7 @@ class logisitic_regression():
                 self.B[j] = soft_thresholding(sum[0],lambd*a)/(wx2 +lambd*(1-a) + 1e-8)
             if plots:
                 preds = sigmoid(X@self.B+ self.B0)
-                log_like = -(y*np.log(preds)+(1-y)*np.log(1-preds)).sum()
+                log_like = ((y*np.log(preds)+(1-y)*np.log(1-preds)).sum())
                 log_likes.append(log_like)
                 coefs[i:,]=self.B
                 i+=1
@@ -101,7 +101,6 @@ class logisitic_regression():
             plt.xlabel('Iteration')
             plt.ylabel('Coefficients')
             plt.title('Change of coefficients through iterations')
-            plt.legend()
             plt.show()
 
 
@@ -277,7 +276,6 @@ class logisitic_regression():
         plt.xlabel('Lambda')
         plt.ylabel('Coefficients')
         plt.title('Coefficients for different lambdas with CCD Logistic Regression')
-        plt.legend()
         if filename is not None:
             plt.savefig(filename)
         plt.show()
